@@ -130,6 +130,7 @@ byte **splitDataInBlock(byte *data, size_t dataSize, const int blockSize, size_t
     return blockData;
 }
 
+
 byte *dataXOR(const byte *data1, const byte *data2, size_t dataSize1, size_t dataSize2) {
     size_t maxSize = dataSize1 > dataSize2 ? dataSize1 : dataSize2;
     byte *dataNew = malloc(maxSize);
@@ -153,9 +154,23 @@ byte *dataXOR(const byte *data1, const byte *data2, size_t dataSize1, size_t dat
     return dataNew;
 }
 
+
 void subBytes(byte *data, size_t dataSize) {
     for (int i = 0; i < dataSize; ++i) {
         data[i] = Sbox[data[i]];
     }
 }
 
+
+void keyExpansion(byte* key, word *exKey, const int versionAES){
+
+}
+
+
+word subWord(word keyWord){
+    word result = 0;
+    for (int i = 0; i < 4; i++) {
+        result |= ((Sbox[keyWord >> (i * 8)]) << (i * 8));
+    }
+    return result;
+}

@@ -37,6 +37,7 @@ extern "C" {
 #endif
 
 typedef unsigned char byte;
+typedef unsigned long word;
 
 typedef struct {
     size_t dataSize;
@@ -99,6 +100,15 @@ byte* dataXOR(const byte* data1, const byte* data2, size_t dataSize1, size_t dat
  */
 void subBytes(byte* data, size_t dataSize);
 
+/**
+ * Key expansion для создание раундового ключа
+ */
+void keyExpansion(byte* key, word *exKey, const int versionAES);
+
+/**
+ * SubWord импользуя таблицу S-box.
+ */
+word subWord(word keyWord);
 
 
 #ifdef __cplusplus

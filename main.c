@@ -14,7 +14,7 @@ int main() {
     //
 
     byte key[KEY_AES_128];
-    CryptData cryptData = encryptAES(data, dataSize, AES_128, key);
+    CryptData cryptData = encryptAES(data, dataSize, AES_128, AES_ECB, key);
 
 
 
