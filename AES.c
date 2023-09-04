@@ -1,5 +1,18 @@
 #include "AES.h"
 
+// the number of 32-bit words that make up the encryption key,
+// for AES Nk = 4, 6, or 8
+#define NK_128 4
+#define NK_192 6
+#define NK_256 8
+
+#define NB 4
+
+// number of rounds, which is a function of Nk and Nb. For AES Nr = 10, 12, 14
+#define NR_128 ROUND_AES_128
+#define NR_192 ROUND_AES_192
+#define NR_256 ROUND_AES_256
+
 static const int keySizeAES[] = {
         KEY_AES_128,
         KEY_AES_192,
@@ -30,6 +43,9 @@ static const byte Sbox[] = {
         0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
         0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
+
+static const word Rcon[] = {0x00, 0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000,
+                            0x20000000, 0x40000000, 0x80000000, 0x1b000000, 0x36000000};
 
 #ifdef _WIN32
 
@@ -81,7 +97,7 @@ CryptData encryptAES(byte *data, size_t dataSize, int versionAES, int modeAES, b
 }
 
 
-CryptData encryptAES_ECB(byte** dataBlock, size_t blockCount, int versionAES, byte* key){
+CryptData encryptAES_ECB(byte **dataBlock, size_t blockCount, int versionAES, byte *key) {
 
 }
 
@@ -162,15 +178,56 @@ void subBytes(byte *data, size_t dataSize) {
 }
 
 
-void keyExpansion(byte* key, word *exKey, const int versionAES){
+void keyExpansion(byte *key, word *exKey, const int versionAES) {
+    int Nk = 0;
+    int Nr = 0;
+    switch (versionAES) {
+        case AES_128:
+            Nk = NK_128;
+            Nr = NR_128;
+            break;
+        case AES_192:
+            Nk = NK_192;
+            Nr = NR_192;
+            break;
+        case AES_256:
+            Nk = NK_256;
+            Nr = NR_256;
+            break;
+        default:
+            return;
+    }
 
+    // copy the original key to the beginning of the extended key
+    for (int i = 0; i < Nk; i++) {
+        exKey[i] = ((word) key[4 * i] << 24) |
+                   ((word) key[4 * i + 1] << 16) |
+                   ((word) key[4 * i + 2] << 8) |
+                   ((word) key[4 * i + 3]);
+    }
+
+    // key expansion is performed here
+    for (int i = Nk; i < NB * (Nr + 1); i++) {
+        word temp = exKey[i - 1];
+        if (i % Nk == 0) {
+            temp = subWord(rotWord(temp)) ^ Rcon[i / Nk];
+        } else if ((Nk == NK_192) & (i % Nk == 4)) {
+            temp = subWord(temp);
+        }
+        exKey[i] = exKey[i - Nk] ^ temp;
+    }
 }
 
 
-word subWord(word keyWord){
+word subWord(word keyWord) {
     word result = 0;
-    for (int i = 0; i < 4; i++) {
-        result |= ((Sbox[keyWord >> (i * 8)]) << (i * 8));
+    for (int i = 0; i < NB; i++) {
+        result |= (Sbox[(keyWord >> (i * 8)) & 0xFF] << (i * 8));
     }
     return result;
+}
+
+
+word rotWord(word keyWord) {
+    return ((keyWord << 8) | (keyWord >> 24));
 }

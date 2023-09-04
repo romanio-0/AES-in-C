@@ -25,6 +25,10 @@
 #define ROUND_AES_192 12
 #define ROUND_AES_256 14
 
+#define ROUND_KEY_AES_128 44
+#define ROUND_KEY_AES_192 52
+#define ROUND_KEY_AES_256 60
+
 #define AES_ECB 0
 #define AES_CBC 1
 
@@ -89,9 +93,9 @@ size_t delPadding(byte* data, size_t dataSize);
 byte **splitDataInBlock(byte *data, size_t dataSize, const int blockSize, size_t *blockCount);
 
 /**
- * XOR одного блока с другим
+ * XOR одного блока с другим.
  * @return возвращает новый блок данных выделенный динамически (malloc()),
- * его размер будет зависить от наибольшего переданного блока
+ * его размер будет зависить от наибольшего переданного блока.
  */
 byte* dataXOR(const byte* data1, const byte* data2, size_t dataSize1, size_t dataSize2);
 
@@ -101,7 +105,11 @@ byte* dataXOR(const byte* data1, const byte* data2, size_t dataSize1, size_t dat
 void subBytes(byte* data, size_t dataSize);
 
 /**
- * Key expansion для создание раундового ключа
+ * Key expansion для создание раундового ключа.
+ * Размер ключа зависит от версии AES:
+ * 128 - 44 байта
+ * 192 - 52 байта
+ * 256 - 60 байт
  */
 void keyExpansion(byte* key, word *exKey, const int versionAES);
 
@@ -109,6 +117,11 @@ void keyExpansion(byte* key, word *exKey, const int versionAES);
  * SubWord импользуя таблицу S-box.
  */
 word subWord(word keyWord);
+
+/**
+ * Функция для выполнения циклического сдвига 32-битного слова влево на один байт.
+ */
+word rotWord(word keyWord);
 
 
 #ifdef __cplusplus
