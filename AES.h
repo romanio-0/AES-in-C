@@ -6,16 +6,24 @@
 
 
 #ifdef _WIN32
+
 #include <Windows.h>
+
 #else // linux
 #include <fcntl.h>
 #include <unistd.h>
 #endif
 
+typedef enum {
+    AES_128,
+    AES_192,
+    AES_256
+} VersionAES;
 
-#define AES_128 0
-#define AES_192 1
-#define AES_256 2
+typedef enum {
+    AES_ECB,
+    AES_CBC
+} ModeAES;
 
 #define KEY_AES_128 16
 #define KEY_AES_192 24
@@ -28,9 +36,6 @@
 #define ROUND_KEY_AES_128 44
 #define ROUND_KEY_AES_192 52
 #define ROUND_KEY_AES_256 60
-
-#define AES_ECB 0
-#define AES_CBC 1
 
 #define AES_BLOCK_SIZE 16
 
@@ -45,13 +50,13 @@ typedef unsigned long word;
 
 typedef struct {
     size_t dataSize;
-    byte* data;
-}CryptData;
+    byte *data;
+} CryptData;
 
 /**
  * Генерирует истинно случайный ключ.
  */
-int keyGeneration(byte* key, int keySize);
+int keyGeneration(byte *key, int keySize);
 
 /**
  * Функция для шифрования данных алгоритмом AES.
@@ -61,16 +66,16 @@ int keyGeneration(byte* key, int keySize);
  * @param mode устанавливает режим шифрования.
  * @return возвращает зашифрованные данные.
  */
-CryptData encryptAES(byte* data, size_t dataSize, int versionAES, int modeAES, byte* key);
+CryptData encryptAES(byte *data, size_t dataSize, VersionAES versionAES, ModeAES mode, byte *key);
 
 /**
  * Функция для шифрования данных алгоритмом AES в режиме ECB.
  *
  * @param key возвращает ключ шифрования.
- * @param versionAES устанавливает AES_128, AES_192 или AES_256.
+ * @param version устанавливает AES_128, AES_192 или AES_256.
  * @return возвращает зашифрованные данные.
  */
-CryptData encryptAES_ECB(byte** dataBlock, size_t blockCount, int versionAES, byte* key);
+CryptData encryptAES_ECB(byte **dataBlock, size_t blockCount, VersionAES version, byte *key);
 
 /**
  * Функция дополняет данные, если они не кратны нужному
@@ -78,31 +83,53 @@ CryptData encryptAES_ECB(byte** dataBlock, size_t blockCount, int versionAES, by
  *
  * Возвращает новый размер данных с учетом PKCS7 Padding.
  */
-size_t addPadding(byte *blockData, size_t blockDataSize, const int blockSize);
+size_t addPadding(byte *blockData, size_t blockDataSize);
 
 /**
  * Функция удаляет PKCS7 Padding.
  *
  * Возвращает новый размер данных с учетом удаленного PKCS7 Padding.
  */
-size_t delPadding(byte* data, size_t dataSize);
+size_t delPadding(byte *data, size_t dataSize);
 
 /**
  * Функция которая разбивает данные на нужное кол-во блоков.
  */
-byte **splitDataInBlock(byte *data, size_t dataSize, const int blockSize, size_t *blockCount);
+byte **splitDataInBlock(byte *data, size_t dataSize, size_t *blockCount);
 
 /**
  * XOR одного блока с другим.
  * @return возвращает новый блок данных выделенный динамически (malloc()),
  * его размер будет зависить от наибольшего переданного блока.
  */
-byte* dataXOR(const byte* data1, const byte* data2, size_t dataSize1, size_t dataSize2);
+byte *dataXOR(const byte *data1, const byte *data2, size_t dataSize1, size_t dataSize2);
 
 /**
  * SubBytes используя таблицу S-box.
  */
-void subBytes(byte* data, size_t dataSize);
+void subBytes(byte *data, size_t dataSize);
+
+/**
+ * Adding a Round Key to a Data Block.
+ */
+void addRoundKey(byte *data, word *roundKey);
+
+/**
+ * Rotates the string to the left.
+ * The amount of blending depends on the row number.
+ */
+void shiftRows(byte *data);
+
+/**
+ * Функция берёт все столбцы State и смешивает их данные
+ * (независимо друг от друга), чтобы получить новые столбцы.
+ */
+void mixColumns(byte* data);
+
+/**
+ * Function inverse of MixColumns.
+ */
+void invMixColumns(byte *data);
 
 /**
  * Key expansion для создание раундового ключа.
@@ -111,7 +138,7 @@ void subBytes(byte* data, size_t dataSize);
  * 192 - 52 байта
  * 256 - 60 байт
  */
-void keyExpansion(byte* key, word *exKey, const int versionAES);
+void keyExpansion(const byte *key, word *roundKey, VersionAES versionAES);
 
 /**
  * SubWord импользуя таблицу S-box.

@@ -13,16 +13,22 @@
 #define NR_192 ROUND_AES_192
 #define NR_256 ROUND_AES_256
 
+static const int NkAES[] = {
+        NK_128,
+        NK_192,
+        NK_256
+};
+
 static const int keySizeAES[] = {
         KEY_AES_128,
         KEY_AES_192,
         KEY_AES_256
 };
 
-static const int roundAES[] = {
-        ROUND_AES_128,
-        ROUND_AES_192,
-        ROUND_AES_256
+static const int NrAES[] = {
+        NR_128,
+        NR_192,
+        NR_256
 };
 
 static const byte Sbox[] = {
@@ -81,7 +87,7 @@ int keyGeneration(byte* key, int keySize){
 }
 #endif
 
-CryptData encryptAES(byte *data, size_t dataSize, int versionAES, int modeAES, byte *key) {
+CryptData encryptAES(byte *data, size_t dataSize, VersionAES versionAES, ModeAES mode, byte *key) {
     size_t blockCount = 0;
     int keySize = keySizeAES[versionAES];
 
@@ -97,17 +103,17 @@ CryptData encryptAES(byte *data, size_t dataSize, int versionAES, int modeAES, b
 }
 
 
-CryptData encryptAES_ECB(byte **dataBlock, size_t blockCount, int versionAES, byte *key) {
+CryptData encryptAES_ECB(byte **dataBlock, size_t blockCount, VersionAES version, byte *key) {
 
 }
 
 
-size_t addPadding(byte *blockData, size_t blockDataSize, const int blockSize) {
-    if (blockDataSize % blockSize == 0) {
+size_t addPadding(byte *blockData, size_t blockDataSize) {
+    if (blockDataSize % AES_BLOCK_SIZE == 0) {
         // if padding is not needed
         return blockDataSize;
     }
-    byte valuePadding = blockSize - (blockDataSize % blockSize);
+    byte valuePadding = AES_BLOCK_SIZE - (blockDataSize % AES_BLOCK_SIZE);
     for (size_t i = 0; i < valuePadding; ++i) {
         blockData[blockDataSize + i] = valuePadding;
     }
@@ -132,14 +138,14 @@ size_t delPadding(byte *data, size_t dataSize) {
 }
 
 
-byte **splitDataInBlock(byte *data, size_t dataSize, const int blockSize, size_t *blockCount) {
+byte **splitDataInBlock(byte *data, size_t dataSize, size_t *blockCount) {
     // if the data is not a multiple of the block size, then it will be padded
-    *blockCount = dataSize / blockSize;
+    *blockCount = dataSize / AES_BLOCK_SIZE;
     byte **blockData = malloc(sizeof(void *) * (*blockCount));
     for (size_t i = 0; i < *blockCount; ++i) {
-        blockData[i] = malloc(blockSize);
-        for (int j = 0; j < blockSize; ++j) {
-            blockData[i][j] = data[(blockSize * i) + j];
+        blockData[i] = malloc(AES_BLOCK_SIZE);
+        for (int j = 0; j < AES_BLOCK_SIZE; ++j) {
+            blockData[i][j] = data[(AES_BLOCK_SIZE * i) + j];
         }
     }
 
@@ -178,43 +184,144 @@ void subBytes(byte *data, size_t dataSize) {
 }
 
 
-void keyExpansion(byte *key, word *exKey, const int versionAES) {
-    int Nk = 0;
-    int Nr = 0;
-    switch (versionAES) {
-        case AES_128:
-            Nk = NK_128;
-            Nr = NR_128;
-            break;
-        case AES_192:
-            Nk = NK_192;
-            Nr = NR_192;
-            break;
-        case AES_256:
-            Nk = NK_256;
-            Nr = NR_256;
-            break;
-        default:
-            return;
+void addRoundKey(byte *data, word *roundKey) {
+    byte byteRoundKey[AES_BLOCK_SIZE] = {0};
+    for (int i = 0; i < NB; ++i) {
+        byteRoundKey[i * 4 + 0] = ((byte) (roundKey[i] >> 24));
+        byteRoundKey[i * 4 + 1] = ((byte) (roundKey[i] >> 16));
+        byteRoundKey[i * 4 + 2] = ((byte) (roundKey[i] >> 8));
+        byteRoundKey[i * 4 + 3] = ((byte) (roundKey[i]));
     }
+    for (int i = 0; i < AES_BLOCK_SIZE; ++i) {
+        data[i] ^= byteRoundKey[i];
+    }
+}
+
+
+void shiftRows(byte *data) {
+    for (int rows = 0; rows < NB; ++rows) {
+        byte tmp;
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < NB - 1; ++j) {
+                tmp = data[rows * NB + j];
+                data[rows * NB + j] = data[rows * NB + j + 1];
+                data[rows * NB + j + 1] = tmp;
+            }
+        }
+    }
+}
+
+
+byte multiplyAES(byte a, byte b) {
+    byte result = 0;
+    byte carry;
+    for (int i = 0; i < 8; i++) {
+        if (b & 1) {
+            result ^= a;
+        }
+        carry = a & 0x80;
+        a <<= 1;
+        if (carry) {
+            a ^= 0x1B;
+        }
+        b >>= 1;
+    }
+    return result;
+}
+
+/**
+ * a function that mixes the data of one column for the mixColumns/invMixColumns function
+ */
+void mixColumn(byte *data, byte *mixMatrix) {
+    byte dataCpy[4];
+    for (int i = 0; i < 4; i++) {
+        dataCpy[i] = data[i];
+    }
+    data[0] = multiplyAES(dataCpy[0], mixMatrix[0]) ^
+              multiplyAES(dataCpy[3], mixMatrix[1]) ^
+              multiplyAES(dataCpy[2], mixMatrix[2]) ^
+              multiplyAES(dataCpy[1], mixMatrix[3]);
+
+    data[1] = multiplyAES(dataCpy[1], mixMatrix[4]) ^
+              multiplyAES(dataCpy[0], mixMatrix[5]) ^
+              multiplyAES(dataCpy[3], mixMatrix[6]) ^
+              multiplyAES(dataCpy[2], mixMatrix[7]);
+
+    data[2] = multiplyAES(dataCpy[2], mixMatrix[8]) ^
+              multiplyAES(dataCpy[1], mixMatrix[9]) ^
+              multiplyAES(dataCpy[0], mixMatrix[10]) ^
+              multiplyAES(dataCpy[3], mixMatrix[11]);
+
+    data[3] = multiplyAES(dataCpy[3], mixMatrix[12]) ^
+              multiplyAES(dataCpy[2], mixMatrix[13]) ^
+              multiplyAES(dataCpy[1], mixMatrix[14]) ^
+              multiplyAES(dataCpy[0], mixMatrix[15]);
+}
+
+
+void mixColumns(byte *data) {
+    byte mixMatrix[] = {0x02, 0x03, 0x01, 0x01, 0x01, 0x02, 0x03, 0x01,
+                        0x01, 0x01, 0x02, 0x03, 0x03, 0x01, 0x01, 0x02};
+
+    byte dataCol[NB];
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j){
+            dataCol[j] = data[j * 4 + i];
+        }
+
+        // apply the MixColumn on one column
+        mixColumn(dataCol, mixMatrix);
+
+        for (int j = 0; j < 4; ++j){
+            data[j * 4 + i] = dataCol[j];
+        }
+    }
+}
+
+
+void invMixColumns(byte *data) {
+    byte mixMatrix[] = {0x0e, 0x0b, 0x0d, 0x09, 0x09, 0x0e, 0x0b, 0x0d,
+                        0x0d, 0x09, 0x0e, 0x0b, 0x0b, 0x0d, 0x09, 0x0e};
+
+    byte dataCol[NB];
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j){
+            dataCol[j] = data[j * 4 + i];
+        }
+
+        // apply the MixColumn on one column
+        mixColumn(dataCol, mixMatrix);
+
+        for (int j = 0; j < 4; ++j){
+            data[j * 4 + i] = dataCol[j];
+        }
+    }
+}
+
+
+void keyExpansion(const byte *key, word *roundKey, VersionAES versionAES) {
+    int Nk = NkAES[versionAES];
+    int Nr = NrAES[versionAES];
 
     // copy the original key to the beginning of the extended key
     for (int i = 0; i < Nk; i++) {
-        exKey[i] = ((word) key[4 * i] << 24) |
-                   ((word) key[4 * i + 1] << 16) |
-                   ((word) key[4 * i + 2] << 8) |
-                   ((word) key[4 * i + 3]);
+        roundKey[i] = ((word) key[4 * i] << 24) |
+                      ((word) key[4 * i + 1] << 16) |
+                      ((word) key[4 * i + 2] << 8) |
+                      ((word) key[4 * i + 3]);
     }
 
     // key expansion is performed here
     for (int i = Nk; i < NB * (Nr + 1); i++) {
-        word temp = exKey[i - 1];
+        word temp = roundKey[i - 1];
         if (i % Nk == 0) {
             temp = subWord(rotWord(temp)) ^ Rcon[i / Nk];
         } else if ((Nk == NK_192) & (i % Nk == 4)) {
             temp = subWord(temp);
         }
-        exKey[i] = exKey[i - Nk] ^ temp;
+        roundKey[i] = roundKey[i - Nk] ^ temp;
     }
 }
 
