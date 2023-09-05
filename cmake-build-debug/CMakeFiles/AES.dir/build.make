@@ -107,6 +107,7 @@ AES_EXTERNAL_OBJECTS =
 AES.exe: CMakeFiles/AES.dir/main.c.obj
 AES.exe: CMakeFiles/AES.dir/AES.c.obj
 AES.exe: CMakeFiles/AES.dir/build.make
+AES.exe: C:/Windows/System32/bcrypt.dll
 AES.exe: CMakeFiles/AES.dir/linkLibs.rsp
 AES.exe: CMakeFiles/AES.dir/objects1.rsp
 AES.exe: CMakeFiles/AES.dir/link.txt

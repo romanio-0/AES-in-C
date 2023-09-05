@@ -56,15 +56,12 @@ static const word Rcon[] = {0x00, 0x01000000, 0x02000000, 0x04000000, 0x08000000
 #ifdef _WIN32
 
 int keyGeneration(byte *key, int keySize) {
-    if (CryptAcquireContext(NULL, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
-        if (CryptGenRandom(0, keySize, key)) {
-            // key generated
-            return 1; //true
-        }
+    if (BCryptGenRandom(NULL, key, keySize, BCRYPT_USE_SYSTEM_PREFERRED_RNG)) {
+        // key generation error
+        return 1;
     }
 
-    // key generation error
-    return 0; //false
+    return 0;
 }
 
 #else // linux
@@ -87,24 +84,50 @@ int keyGeneration(byte* key, int keySize){
 }
 #endif
 
-CryptData encryptAES(byte *data, size_t dataSize, VersionAES versionAES, ModeAES mode, byte *key) {
+CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key) {
+    CryptData cryptData;
     size_t blockCount = 0;
-    int keySize = keySizeAES[versionAES];
 
-    dataSize = addPadding(data, dataSize, AES_BLOCK_SIZE);
+    dataSize = addPadding(data, dataSize);
 
-    byte **blockData = splitDataInBlock(data, dataSize, AES_BLOCK_SIZE, &blockCount);
+    byte **blockData = splitDataInBlock(data, dataSize, &blockCount);
 
-    if (!keyGeneration(key, keySize)) {
-        return (CryptData) {0, NULL};
+    switch (mode) {
+        case AES_ECB:
+            encryptAES_ECB(blockData, blockCount, version, key);
+            break;
+        case AES_CBC:
+            // ...
+            break;
     }
 
+    cryptData.data = mergerBlockInData(blockData, blockCount);
+    cryptData.dataSize = dataSize;
 
+    return cryptData;
 }
 
 
-CryptData encryptAES_ECB(byte **dataBlock, size_t blockCount, VersionAES version, byte *key) {
+void encryptAES_ECB(byte **data, size_t blockCount, VersionAES version, byte *key) {
+    word *roundKey = malloc(sizeof(word) * (NrAES[version] + 1) * NB);
 
+    keyExpansion(key, roundKey, version);
+
+    for (size_t block = 0; block < blockCount; ++block) {
+        addRoundKey(data[block], roundKey);
+
+        for (size_t round = 1; round < NrAES[version]; ++round){
+            subBytes(data[block], AES_BLOCK_SIZE);
+            shiftRows(data[block]);
+            mixColumns(data[block]);
+            addRoundKey(data[block], roundKey + (round * NB));
+        }
+
+        subBytes(data[block], AES_BLOCK_SIZE);
+        shiftRows(data[block]);
+        addRoundKey(data[block], roundKey + (NrAES[version] * NB));
+    }
+    free(roundKey);
 }
 
 
@@ -139,17 +162,51 @@ size_t delPadding(byte *data, size_t dataSize) {
 
 
 byte **splitDataInBlock(byte *data, size_t dataSize, size_t *blockCount) {
-    // if the data is not a multiple of the block size, then it will be padded
     *blockCount = dataSize / AES_BLOCK_SIZE;
     byte **blockData = malloc(sizeof(void *) * (*blockCount));
     for (size_t i = 0; i < *blockCount; ++i) {
-        blockData[i] = malloc(AES_BLOCK_SIZE);
+        blockData[i] = expandBlock(data + (AES_BLOCK_SIZE * i));
+        /*blockData[i] = malloc(AES_BLOCK_SIZE);
         for (int j = 0; j < AES_BLOCK_SIZE; ++j) {
             blockData[i][j] = data[(AES_BLOCK_SIZE * i) + j];
-        }
+        }*/
     }
 
     return blockData;
+}
+
+
+byte *mergerBlockInData(byte** blockData, size_t blockCount){
+    byte* data = malloc(blockCount * AES_BLOCK_SIZE);
+    byte* tmp;
+    for (size_t i = 0; i < blockCount; ++i){
+        tmp = backExpandBlock(blockData[i]);
+        for (size_t j = 0; j < AES_BLOCK_SIZE; ++j){
+            data[i * AES_BLOCK_SIZE + j] = tmp[j];//data[i * AES_BLOCK_SIZE + j] = blockData[i][j];
+        }
+        free(tmp);
+    }
+    return data;
+}
+
+
+byte* expandBlock(byte *data){
+    byte *block = malloc(AES_BLOCK_SIZE);
+    for (int i = 0; i < 4; ++i){
+        for (int j = 0; j < 4; j++)
+            block[(i + (j * 4))] = data[(i * 4) + j];
+    }
+    return block;
+}
+
+
+byte* backExpandBlock(byte *data){
+    byte *block = malloc(AES_BLOCK_SIZE);
+    for (int i = 0; i < 4; i++){
+        for (int j = 0; j < 4; j++)
+            block[(i * 4) + j] = data[(i + (j * 4))];
+    }
+    return block;
 }
 
 
@@ -185,16 +242,25 @@ void subBytes(byte *data, size_t dataSize) {
 
 
 void addRoundKey(byte *data, word *roundKey) {
-    byte byteRoundKey[AES_BLOCK_SIZE] = {0};
+    byte* byteRoundKey = malloc(AES_BLOCK_SIZE);
+
     for (int i = 0; i < NB; ++i) {
         byteRoundKey[i * 4 + 0] = ((byte) (roundKey[i] >> 24));
         byteRoundKey[i * 4 + 1] = ((byte) (roundKey[i] >> 16));
         byteRoundKey[i * 4 + 2] = ((byte) (roundKey[i] >> 8));
         byteRoundKey[i * 4 + 3] = ((byte) (roundKey[i]));
     }
+
+    // the mapping order is a0,0 a1,0 a2,0 a3,0 a0,1 a1,1 ... a2,3 a3,3
+    byte* tmp = expandBlock(byteRoundKey);
+    free(byteRoundKey);
+    byteRoundKey = tmp;
+
     for (int i = 0; i < AES_BLOCK_SIZE; ++i) {
         data[i] ^= byteRoundKey[i];
     }
+
+    free(byteRoundKey);
 }
 
 
@@ -238,24 +304,24 @@ void mixColumn(byte *data, byte *mixMatrix) {
         dataCpy[i] = data[i];
     }
     data[0] = multiplyAES(dataCpy[0], mixMatrix[0]) ^
-              multiplyAES(dataCpy[3], mixMatrix[1]) ^
+              multiplyAES(dataCpy[1], mixMatrix[1]) ^
               multiplyAES(dataCpy[2], mixMatrix[2]) ^
-              multiplyAES(dataCpy[1], mixMatrix[3]);
+              multiplyAES(dataCpy[3], mixMatrix[3]);
 
-    data[1] = multiplyAES(dataCpy[1], mixMatrix[4]) ^
-              multiplyAES(dataCpy[0], mixMatrix[5]) ^
-              multiplyAES(dataCpy[3], mixMatrix[6]) ^
-              multiplyAES(dataCpy[2], mixMatrix[7]);
+    data[1] = multiplyAES(dataCpy[0], mixMatrix[4]) ^
+              multiplyAES(dataCpy[1], mixMatrix[5]) ^
+              multiplyAES(dataCpy[2], mixMatrix[6]) ^
+              multiplyAES(dataCpy[3], mixMatrix[7]);
 
-    data[2] = multiplyAES(dataCpy[2], mixMatrix[8]) ^
+    data[2] = multiplyAES(dataCpy[0], mixMatrix[8]) ^
               multiplyAES(dataCpy[1], mixMatrix[9]) ^
-              multiplyAES(dataCpy[0], mixMatrix[10]) ^
+              multiplyAES(dataCpy[2], mixMatrix[10]) ^
               multiplyAES(dataCpy[3], mixMatrix[11]);
 
-    data[3] = multiplyAES(dataCpy[3], mixMatrix[12]) ^
-              multiplyAES(dataCpy[2], mixMatrix[13]) ^
-              multiplyAES(dataCpy[1], mixMatrix[14]) ^
-              multiplyAES(dataCpy[0], mixMatrix[15]);
+    data[3] = multiplyAES(dataCpy[0], mixMatrix[12]) ^
+              multiplyAES(dataCpy[1], mixMatrix[13]) ^
+              multiplyAES(dataCpy[2], mixMatrix[14]) ^
+              multiplyAES(dataCpy[3], mixMatrix[15]);
 }
 
 
@@ -266,14 +332,14 @@ void mixColumns(byte *data) {
     byte dataCol[NB];
 
     for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j){
+        for (int j = 0; j < 4; ++j) {
             dataCol[j] = data[j * 4 + i];
         }
 
         // apply the MixColumn on one column
         mixColumn(dataCol, mixMatrix);
 
-        for (int j = 0; j < 4; ++j){
+        for (int j = 0; j < 4; ++j) {
             data[j * 4 + i] = dataCol[j];
         }
     }
@@ -287,14 +353,14 @@ void invMixColumns(byte *data) {
     byte dataCol[NB];
 
     for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j){
+        for (int j = 0; j < 4; ++j) {
             dataCol[j] = data[j * 4 + i];
         }
 
         // apply the MixColumn on one column
         mixColumn(dataCol, mixMatrix);
 
-        for (int j = 0; j < 4; ++j){
+        for (int j = 0; j < 4; ++j) {
             data[j * 4 + i] = dataCol[j];
         }
     }

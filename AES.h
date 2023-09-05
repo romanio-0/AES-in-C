@@ -62,20 +62,20 @@ int keyGeneration(byte *key, int keySize);
  * Функция для шифрования данных алгоритмом AES.
  *
  * @param key возвращает ключ шифрования.
- * @param versionAES устанавливает AES_128, AES_192 или AES_256.
+ * @param version устанавливает AES_128, AES_192 или AES_256.
  * @param mode устанавливает режим шифрования.
  * @return возвращает зашифрованные данные.
  */
-CryptData encryptAES(byte *data, size_t dataSize, VersionAES versionAES, ModeAES mode, byte *key);
+CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key);
 
 /**
  * Функция для шифрования данных алгоритмом AES в режиме ECB.
  *
  * @param key возвращает ключ шифрования.
  * @param version устанавливает AES_128, AES_192 или AES_256.
- * @return возвращает зашифрованные данные.
+ * @param data приниемает данные и защифровывает их. *
  */
-CryptData encryptAES_ECB(byte **dataBlock, size_t blockCount, VersionAES version, byte *key);
+void encryptAES_ECB(byte **data, size_t blockCount, VersionAES version, byte *key);
 
 /**
  * Функция дополняет данные, если они не кратны нужному
@@ -96,6 +96,26 @@ size_t delPadding(byte *data, size_t dataSize);
  * Функция которая разбивает данные на нужное кол-во блоков.
  */
 byte **splitDataInBlock(byte *data, size_t dataSize, size_t *blockCount);
+
+/**
+ * Обьеденяет блоки в один поток данных.
+ */
+byte *mergerBlockInData(byte** blockData, size_t blockCount);
+
+/**
+ * Set the block values, for the block: \n
+ * a0,0 a0,1 a0,2 a0,3\n
+ * a1,0 a1,1 a1,2 a1,3\n
+ * a2,0 a2,1 a2,2 a2,3\n
+ * a3,0 a3,1 a3,2 a3,3\n
+ * the mapping order is a0,0 a1,0 a2,0 a3,0 a0,1 a1,1 ... a2,3 a3,3
+ */
+byte* expandBlock(byte *data);
+
+/**
+ * Return the block to its original state.
+ */
+byte* backExpandBlock(byte *data);
 
 /**
  * XOR одного блока с другим.
