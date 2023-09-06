@@ -1,19 +1,27 @@
+/*
+ * AES crypter
+ *
+ * This library allows you to encrypt and decrypt various data.
+ * There is support for AES-128, AES-192, and AES-256 in ECB and CBC modes.
+ *
+ * PKCS7 Padding is used to supplement blocks, it complements only if the block is not complete,
+ * but if the block is complete, another augmented block will not be created.
+ *
+ * It is also possible to generate a truly random key, but only on Windows, on Linux this function will not work in the library.
+ *
+ * Most functions have prototypes in "AES.h" in order to be able to use them separately for their needs
+ */
 #ifndef _AES_H_
 #define _AES_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#define _DEBUG_
-
 #ifdef _WIN32
-
 #include <Windows.h>
+#endif // _WIN32
 
-#else // linux
-#include <fcntl.h>
-#include <unistd.h>
-#endif
+#define _DEBUG_
 
 #ifdef _DEBUG_
 #define _print(msg, ...) printf(msg, ## __VA_ARGS__)
@@ -80,93 +88,95 @@ typedef struct {
 // */
 //void setErrMsg(lpcstr msg);
 
+
+#ifdef _WIN32
 /**
- * Генерирует истинно случайный ключ.
+ * Generates a truly random key.
  */
 int keyGeneration(byte *key, int keySize);
+#endif // _WIN32
 
 /**
- * Функция для разшифрования данных алгоритмом AES.
+ * A function for decrypting data with the AES algorithm.
  *
- * @param key принимает ключ шифрования.
- * @param iv принимает initialization vector, если используешься режим
- * без его поддежки, то используйте NULL.
- * @param version устанавливает AES_128, AES_192 или AES_256.
- * @param mode устанавливает режим шифрования.
- * @return возвращает разшифрованные данные.
+ * @param key accepts the encryption key.
+ * @param iv accepts an initialization vector, if you use the mode without its support, then use NULL.
+ * @param version sets AES_128, AES_192 or AES_256.
+ * @param mode sets the encryption mode.
+ * @return returns decrypted data.
  */
 CryptData decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte* iv);
 
 /**
- * Функция для разшифрования данных алгоритмом AES в режиме ECB.
+ * A function to decrypt data with the AES algorithm in ECB mode.
  *
- * @param key возвращает ключ шифрования.
- * @param version устанавливает AES_128, AES_192 или AES_256.
- * @param data приниемает данные и разшифровывает их.
+ * @param key returns the encryption key.
+ * @param version sets AES_128, AES_192 or AES_256.
+ * @param data takes data and decrypts it.
  */
 void decryptAES_ECB(byte **data, size_t blockCount, VersionAES version, byte *key);
 
 /**
- * Функция для разшифрования данных алгоритмом AES в режиме CBC.
+ * A function for decrypting data with the AES algorithm in CBC mode.
  *
- * @param key возвращает ключ шифрования.
- * @param version устанавливает AES_128, AES_192 или AES_256.
- * @param data приниемает данные и разшифровывает их.
+ * @param key returns the encryption key.
+ * @param version sets AES_128, AES_192 or AES_256.
+ * @param data takes data and decrypts it.
  */
 void decryptAES_CBC(byte **data, size_t blockCount, VersionAES version, byte *key, byte *iv);
 
 /**
- * Функция для шифрования данных алгоритмом AES.
+ * A function to encrypt data with the AES algorithm.
  *
- * @param key принимает ключ шифрования.
- * @param iv принимает initialization vector, если используешься режим
- * без его поддежки, то используйте NULL.
- * @param version устанавливает AES_128, AES_192 или AES_256.
- * @param mode устанавливает режим шифрования.
- * @return возвращает зашифрованные данные.
+ * @param key takes the encryption key.
+ * @param iv accepts initialization vector if using mode
+ * without its support, then use NULL.
+ * @param version sets AES_128, AES_192 or AES_256.
+ * @param mode sets the encryption mode.
+ * @return returns encrypted data.
  */
 CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte *iv);
 
 /**
- * Функция для шифрования данных алгоритмом AES в режиме ECB.
+ * Function to encrypt data with AES algorithm in ECB mode.
  *
- * @param key возвращает ключ шифрования.
- * @param version устанавливает AES_128, AES_192 или AES_256.
- * @param data приниемает данные и защифровывает их.
+ * @param key returns the encryption key.
+ * @param version sets AES_128, AES_192 or AES_256.
+ * @param data takes data and encrypts it.
  */
 void encryptAES_ECB(byte **data, size_t blockCount, VersionAES version, byte *key);
 
 /**
- * Функция для шифрования данных алгоритмом AES в режиме CBC.
+ * Function to encrypt data with AES algorithm in CBC mode.
  *
- * @param key возвращает ключ шифрования.
- * @param version устанавливает AES_128, AES_192 или AES_256.
- * @param data приниемает данные и защифровывает их.
+ * @param key returns the encryption key.
+ * @param version sets AES_128, AES_192 or AES_256.
+ * @param data takes data and encrypts it.
  */
 void encryptAES_CBC(byte **data, size_t blockCount, VersionAES version, byte *key, byte *iv);
 
 /**
- * Функция дополняет данные, если они не кратны нужному
- * кол-ву байт используя PKCS7 Padding.
+ * The function completes the data if it is not a multiple of the required one.
+ * number of bytes using PKCS7 Padding.
  *
- * Возвращает новый размер данных с учетом PKCS7 Padding.
+ * Returns the new data size with PKCS7 Padding.
  */
 size_t addPadding(byte *blockData, size_t blockDataSize);
 
 /**
- * Функция удаляет PKCS7 Padding.
+ * The function removes PKCS7 Padding.
  *
- * Возвращает новый размер данных с учетом удаленного PKCS7 Padding.
+ * Returns the new data size given the removed PKCS7 Padding.
  */
 size_t delPadding(byte *data, size_t dataSize);
 
 /**
- * Функция которая разбивает данные на нужное кол-во блоков.
+ * A function that splits the data into the desired number of blocks.
  */
 byte **splitDataInBlock(byte *data, size_t dataSize, size_t *blockCount);
 
 /**
- * Обьеденяет блоки в один поток данных.
+ * combinesBlocksIntoOneDataStream
  */
 byte *mergerBlockInData(byte **blockData, size_t blockCount);
 
@@ -186,14 +196,14 @@ byte *expandBlock(byte *data);
 byte *backExpandBlock(byte *data);
 
 /**
- * XOR одного блока с другим.
- * @return возвращает новый блок данных выделенный динамически (malloc()),
- * его размер будет зависить от наибольшего переданного блока.
+ * XOR one block with another.
+ * @return returns a new block of data allocated dynamically (malloc()),
+ * its size will depend on the largest transmitted block.
  */
 byte *dataXOR(const byte *data1, const byte *data2, size_t dataSize1, size_t dataSize2);
 
 /**
- * SubBytes используя таблицу S-box.
+ * SubBytes using table S-box.
  */
 void subBytes(byte *data, size_t dataSize);
 
@@ -220,8 +230,8 @@ void shiftRows(byte *data);
 void invShiftRows(byte *data);
 
 /**
- * Функция берёт все столбцы State и смешивает их данные
- * (независимо друг от друга), чтобы получить новые столбцы.
+ * The function takes all the State columns and mixes their data
+ * (independently of each other) to get new columns.
  */
 void mixColumns(byte *data);
 
@@ -231,8 +241,8 @@ void mixColumns(byte *data);
 void invMixColumns(byte *data);
 
 /**
- * Key expansion для создание раундового ключа.
- * Размер ключа зависит от версии AES:
+ * Key expansion to create a round key.
+ * Key size depends on AES version:
  * 128 - 44 байта
  * 192 - 52 байта
  * 256 - 60 байт
@@ -240,12 +250,12 @@ void invMixColumns(byte *data);
 void keyExpansion(const byte *key, word *roundKey, VersionAES versionAES);
 
 /**
- * SubWord импользуя таблицу S-box.
+ * SubWord using table S-box.
  */
 word subWord(word keyWord);
 
 /**
- * Функция для выполнения циклического сдвига 32-битного слова влево на один байт.
+ * A function to rotate a 32-bit word left by one byte.
  */
 word rotWord(word keyWord);
 

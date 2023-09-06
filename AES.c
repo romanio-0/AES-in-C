@@ -1,3 +1,16 @@
+/*
+ * AES crypter
+ *
+ * This library allows you to encrypt and decrypt various data.
+ * There is support for AES-128, AES-192, and AES-256 in ECB and CBC modes.
+ *
+ * PKCS7 Padding is used to supplement blocks, it complements only if the block is not complete,
+ * but if the block is complete, another augmented block will not be created.
+ *
+ * It is also possible to generate a truly random key, but only on Windows, on Linux this function will not work in the library.
+ *
+ * Most functions have prototypes in "AES.h" in order to be able to use them separately for their needs
+ */
 #include "AES.h"
 
 // the number of 32-bit words that make up the encryption key,
@@ -73,7 +86,6 @@ static const word Rcon[] = {0x00000000, 0x01000000, 0x02000000, 0x04000000, 0x08
                             0x20000000, 0x40000000, 0x80000000, 0x1b000000, 0x36000000};
 
 #ifdef _WIN32
-
 int keyGeneration(byte *key, int keySize) {
     if (BCryptGenRandom(NULL, key, keySize, BCRYPT_USE_SYSTEM_PREFERRED_RNG)) {
         // key generation error
@@ -82,26 +94,7 @@ int keyGeneration(byte *key, int keySize) {
 
     return 0;
 }
-
-#else // linux
-int keyGeneration(byte* key, int keySize){
-    int randomFile = open("/dev/urandom", O_RDONLY);
-    if (randomFile < 0) {
-        //failed open file
-        return 0; //false
-    }
-
-    if (read(randomFile, key, keySize) != keySize) {
-        // key generation error
-        close(randomFile);
-        return 0; //false
-    }
-
-    // key generated
-    close(randomFile);
-    return 1; //true
-}
-#endif
+#endif // _WIN32
 
 /*lpcstr getErrMsg(){ return errMsg; }
 
