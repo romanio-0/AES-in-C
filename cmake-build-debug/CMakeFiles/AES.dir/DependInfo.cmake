@@ -9,7 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "D:/ProjectIT/C/AES/AES.c" "CMakeFiles/AES.dir/AES.c.obj" "gcc" "CMakeFiles/AES.dir/AES.c.obj.d"
-  "D:/ProjectIT/C/AES/main.c" "CMakeFiles/AES.dir/main.c.obj" "gcc" "CMakeFiles/AES.dir/main.c.obj.d"
+  "D:/ProjectIT/C/AES/testAES.c" "CMakeFiles/AES.dir/testAES.c.obj" "gcc" "CMakeFiles/AES.dir/testAES.c.obj.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

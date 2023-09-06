@@ -7,9 +7,12 @@
  * PKCS7 Padding is used to supplement blocks, it complements only if the block is not complete,
  * but if the block is complete, another augmented block will not be created.
  *
- * It is also possible to generate a truly random key, but only on Windows, on Linux this function will not work in the library.
+ * It is also possible to generate a truly random key, but only on Windows, on Linux this function will not work
+ * in the library. In order for this function to work, you need to connect bcrypt.dll and add define _GEN_RAND_KEY.
  *
  * Most functions have prototypes in "AES.h" in order to be able to use them separately for their needs
+ *
+ * To receive progress messages, define _DEBUGE
  */
 #ifndef _AES_H_
 #define _AES_H_
@@ -21,9 +24,9 @@
 #include <Windows.h>
 #endif // _WIN32
 
-#define _DEBUG_
+//#define _DEBUG
 
-#ifdef _DEBUG_
+#ifdef _DEBUG
 #define _print(msg, ...) printf(msg, ## __VA_ARGS__)
 #define _forprint(msg, doI, j, data) for(size_t i = 1; i < doI + 1; ++i){   \
                                         _print(msg, data[i - 1]);           \
@@ -31,7 +34,7 @@
                                             _print("\n");                   \
                                      }                                      \
                                      printf("\n");
-#else
+#else // _DEBUG
 #define _print(msg, ...)
 #define _forprint(msg, doI, j, ...)
 #endif
@@ -89,12 +92,12 @@ typedef struct {
 //void setErrMsg(lpcstr msg);
 
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_GEN_RAND_KEY)
 /**
  * Generates a truly random key.
  */
 int keyGeneration(byte *key, int keySize);
-#endif // _WIN32
+#endif // defined(_WIN32) && defined(_RAND_KEY_)
 
 /**
  * A function for decrypting data with the AES algorithm.

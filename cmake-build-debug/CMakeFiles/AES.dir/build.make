@@ -68,19 +68,19 @@ include CMakeFiles/AES.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/AES.dir/flags.make
 
-CMakeFiles/AES.dir/main.c.obj: CMakeFiles/AES.dir/flags.make
-CMakeFiles/AES.dir/main.c.obj: D:/ProjectIT/C/AES/main.c
-CMakeFiles/AES.dir/main.c.obj: CMakeFiles/AES.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=D:\ProjectIT\C\AES\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/AES.dir/main.c.obj"
-	C:\msys64\ucrt64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/AES.dir/main.c.obj -MF CMakeFiles\AES.dir\main.c.obj.d -o CMakeFiles\AES.dir\main.c.obj -c D:\ProjectIT\C\AES\main.c
+CMakeFiles/AES.dir/testAES.c.obj: CMakeFiles/AES.dir/flags.make
+CMakeFiles/AES.dir/testAES.c.obj: D:/ProjectIT/C/AES/testAES.c
+CMakeFiles/AES.dir/testAES.c.obj: CMakeFiles/AES.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=D:\ProjectIT\C\AES\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/AES.dir/testAES.c.obj"
+	C:\msys64\ucrt64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/AES.dir/testAES.c.obj -MF CMakeFiles\AES.dir\testAES.c.obj.d -o CMakeFiles\AES.dir\testAES.c.obj -c D:\ProjectIT\C\AES\testAES.c
 
-CMakeFiles/AES.dir/main.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/AES.dir/main.c.i"
-	C:\msys64\ucrt64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E D:\ProjectIT\C\AES\main.c > CMakeFiles\AES.dir\main.c.i
+CMakeFiles/AES.dir/testAES.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/AES.dir/testAES.c.i"
+	C:\msys64\ucrt64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E D:\ProjectIT\C\AES\testAES.c > CMakeFiles\AES.dir\testAES.c.i
 
-CMakeFiles/AES.dir/main.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/AES.dir/main.c.s"
-	C:\msys64\ucrt64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S D:\ProjectIT\C\AES\main.c -o CMakeFiles\AES.dir\main.c.s
+CMakeFiles/AES.dir/testAES.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/AES.dir/testAES.c.s"
+	C:\msys64\ucrt64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S D:\ProjectIT\C\AES\testAES.c -o CMakeFiles\AES.dir\testAES.c.s
 
 CMakeFiles/AES.dir/AES.c.obj: CMakeFiles/AES.dir/flags.make
 CMakeFiles/AES.dir/AES.c.obj: D:/ProjectIT/C/AES/AES.c
@@ -98,13 +98,13 @@ CMakeFiles/AES.dir/AES.c.s: cmake_force
 
 # Object files for target AES
 AES_OBJECTS = \
-"CMakeFiles/AES.dir/main.c.obj" \
+"CMakeFiles/AES.dir/testAES.c.obj" \
 "CMakeFiles/AES.dir/AES.c.obj"
 
 # External object files for target AES
 AES_EXTERNAL_OBJECTS =
 
-AES.exe: CMakeFiles/AES.dir/main.c.obj
+AES.exe: CMakeFiles/AES.dir/testAES.c.obj
 AES.exe: CMakeFiles/AES.dir/AES.c.obj
 AES.exe: CMakeFiles/AES.dir/build.make
 AES.exe: C:/Windows/System32/bcrypt.dll

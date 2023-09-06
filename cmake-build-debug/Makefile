@@ -152,29 +152,29 @@ AES.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\AES.dir\build.make CMakeFiles/AES.dir/AES.c.s
 .PHONY : AES.c.s
 
-main.obj: main.c.obj
-.PHONY : main.obj
+testAES.obj: testAES.c.obj
+.PHONY : testAES.obj
 
 # target to build an object file
-main.c.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\AES.dir\build.make CMakeFiles/AES.dir/main.c.obj
-.PHONY : main.c.obj
+testAES.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\AES.dir\build.make CMakeFiles/AES.dir/testAES.c.obj
+.PHONY : testAES.c.obj
 
-main.i: main.c.i
-.PHONY : main.i
+testAES.i: testAES.c.i
+.PHONY : testAES.i
 
 # target to preprocess a source file
-main.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\AES.dir\build.make CMakeFiles/AES.dir/main.c.i
-.PHONY : main.c.i
+testAES.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\AES.dir\build.make CMakeFiles/AES.dir/testAES.c.i
+.PHONY : testAES.c.i
 
-main.s: main.c.s
-.PHONY : main.s
+testAES.s: testAES.c.s
+.PHONY : testAES.s
 
 # target to generate assembly for a file
-main.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\AES.dir\build.make CMakeFiles/AES.dir/main.c.s
-.PHONY : main.c.s
+testAES.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\AES.dir\build.make CMakeFiles/AES.dir/testAES.c.s
+.PHONY : testAES.c.s
 
 # Help Target
 help:
@@ -188,9 +188,9 @@ help:
 	@echo ... AES.obj
 	@echo ... AES.i
 	@echo ... AES.s
-	@echo ... main.obj
-	@echo ... main.i
-	@echo ... main.s
+	@echo ... testAES.obj
+	@echo ... testAES.i
+	@echo ... testAES.s
 .PHONY : help
 
 

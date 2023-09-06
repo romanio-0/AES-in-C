@@ -275,7 +275,7 @@ CMakeFiles/AES.dir/AES.c.obj: D:/ProjectIT/C/AES/AES.c \
   C:/msys64/ucrt64/include/mcx.h \
   C:/msys64/ucrt64/include/imm.h
 
-CMakeFiles/AES.dir/main.c.obj: D:/ProjectIT/C/AES/main.c \
+CMakeFiles/AES.dir/testAES.c.obj: D:/ProjectIT/C/AES/testAES.c \
   C:/msys64/ucrt64/include/stdio.h \
   C:/msys64/ucrt64/include/corecrt_stdio_config.h \
   C:/msys64/ucrt64/include/corecrt.h \
@@ -585,6 +585,8 @@ C:/msys64/ucrt64/include/_mingw_stdarg.h:
 C:/msys64/ucrt64/include/windows.h:
 
 C:/msys64/ucrt64/include/stdio.h:
+
+D:/ProjectIT/C/AES/testAES.c:
 
 C:/msys64/ucrt64/include/corecrt_stdio_config.h:
 
@@ -1085,5 +1087,3 @@ C:/msys64/ucrt64/include/oleauto.h:
 C:/msys64/ucrt64/include/winioctl.h:
 
 C:/msys64/ucrt64/include/winsmcrd.h:
-
-D:/ProjectIT/C/AES/main.c:

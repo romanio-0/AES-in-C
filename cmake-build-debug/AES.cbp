@@ -80,7 +80,7 @@
 		<Unit filename="D:/ProjectIT/C/AES/AES.h">
 			<Option target="AES"/>
 		</Unit>
-		<Unit filename="D:/ProjectIT/C/AES/main.c">
+		<Unit filename="D:/ProjectIT/C/AES/testAES.c">
 			<Option target="AES"/>
 		</Unit>
 		<Unit filename="D:/ProjectIT/C/AES/CMakeLists.txt">

@@ -6,5 +6,5 @@ C_DEFINES =
 
 C_INCLUDES = 
 
-C_FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+C_FLAGS = -g -std=gnu11 -fdiagnostics-color=always   -D _GEN_RAND_KEY
 

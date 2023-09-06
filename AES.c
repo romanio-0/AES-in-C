@@ -7,7 +7,8 @@
  * PKCS7 Padding is used to supplement blocks, it complements only if the block is not complete,
  * but if the block is complete, another augmented block will not be created.
  *
- * It is also possible to generate a truly random key, but only on Windows, on Linux this function will not work in the library.
+ * It is also possible to generate a truly random key, but only on Windows, on Linux this function will not work
+ * in the library. In order for this function to work, you need to connect bcrypt.dll and add define _GEN_RAND_KEY.
  *
  * Most functions have prototypes in "AES.h" in order to be able to use them separately for their needs
  */
@@ -85,7 +86,7 @@ static const byte invSbox[] = {
 static const word Rcon[] = {0x00000000, 0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000,
                             0x20000000, 0x40000000, 0x80000000, 0x1b000000, 0x36000000};
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_GEN_RAND_KEY)
 int keyGeneration(byte *key, int keySize) {
     if (BCryptGenRandom(NULL, key, keySize, BCRYPT_USE_SYSTEM_PREFERRED_RNG)) {
         // key generation error
@@ -94,7 +95,7 @@ int keyGeneration(byte *key, int keySize) {
 
     return 0;
 }
-#endif // _WIN32
+#endif // defined(_WIN32) && defined(_RAND_KEY_)
 
 /*lpcstr getErrMsg(){ return errMsg; }
 
@@ -325,7 +326,7 @@ size_t addPadding(byte *blockData, size_t blockDataSize) {
 size_t delPadding(byte *data, size_t dataSize) {
     byte valuePadding = data[dataSize - 1];
 
-    if (valuePadding > AES_BLOCK_SIZE + 1){
+    if (valuePadding >= AES_BLOCK_SIZE){
         // invalid padding
         return dataSize;
     }

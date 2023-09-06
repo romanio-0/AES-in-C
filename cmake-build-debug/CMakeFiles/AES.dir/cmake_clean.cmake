@@ -4,8 +4,8 @@ file(REMOVE_RECURSE
   "AES.pdb"
   "CMakeFiles/AES.dir/AES.c.obj"
   "CMakeFiles/AES.dir/AES.c.obj.d"
-  "CMakeFiles/AES.dir/main.c.obj"
-  "CMakeFiles/AES.dir/main.c.obj.d"
+  "CMakeFiles/AES.dir/testAES.c.obj"
+  "CMakeFiles/AES.dir/testAES.c.obj.d"
   "libAES.dll.a"
 )
 
