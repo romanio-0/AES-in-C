@@ -21,18 +21,19 @@ int main() {
                              0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
                              0x00,0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                              0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};*/
-    byte key[KEY_AES_192] = "123456789012345612345678";
+    byte key[KEY_AES_256] = "12345678901234561234567890123456";
 
     /*if (keyGeneration(key, KEY_AES_128)) {
         return 1;
     }*/
 
 
-    CryptData cryptData = encryptAES(data, dataSize, AES_192, AES_ECB, key);
+    CryptData cryptData = encryptAES(data, dataSize, AES_256, AES_ECB, key);
 
 
+    printf("vse:\n");
     for (size_t i = 1; i < cryptData.dataSize + 1; ++i) {
-        printf("%02X", cryptData.data[i - 1]);
+        printf("%02X ", cryptData.data[i - 1]);
         if (i % 16 == 0)
             printf("\n");
     }

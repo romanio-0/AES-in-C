@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define _DEBUG_
 
 #ifdef _WIN32
 
@@ -12,6 +13,19 @@
 #else // linux
 #include <fcntl.h>
 #include <unistd.h>
+#endif
+
+#ifdef _DEBUG_
+#define _print(msg, ...) printf(msg, ## __VA_ARGS__)
+#define _forprint(msg, doI, j, data) for(size_t i = 1; i < doI + 1; ++i){   \
+                                        _print(msg, data[i - 1]);           \
+                                        if (i % j == 0)                     \
+                                            _print("\n");                   \
+                                     }                                      \
+                                     printf("\n");
+#else
+#define _print(msg, ...)
+#define _forprint(msg, doI, j, ...)
 #endif
 
 typedef enum {
@@ -100,7 +114,7 @@ byte **splitDataInBlock(byte *data, size_t dataSize, size_t *blockCount);
 /**
  * Обьеденяет блоки в один поток данных.
  */
-byte *mergerBlockInData(byte** blockData, size_t blockCount);
+byte *mergerBlockInData(byte **blockData, size_t blockCount);
 
 /**
  * Set the block values, for the block: \n
@@ -110,12 +124,12 @@ byte *mergerBlockInData(byte** blockData, size_t blockCount);
  * a3,0 a3,1 a3,2 a3,3\n
  * the mapping order is a0,0 a1,0 a2,0 a3,0 a0,1 a1,1 ... a2,3 a3,3
  */
-byte* expandBlock(byte *data);
+byte *expandBlock(byte *data);
 
 /**
  * Return the block to its original state.
  */
-byte* backExpandBlock(byte *data);
+byte *backExpandBlock(byte *data);
 
 /**
  * XOR одного блока с другим.
@@ -144,7 +158,7 @@ void shiftRows(byte *data);
  * Функция берёт все столбцы State и смешивает их данные
  * (независимо друг от друга), чтобы получить новые столбцы.
  */
-void mixColumns(byte* data);
+void mixColumns(byte *data);
 
 /**
  * Function inverse of MixColumns.
