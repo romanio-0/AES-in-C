@@ -93,6 +93,7 @@ typedef struct {
 
 
 #if defined(_WIN32) && defined(_GEN_RAND_KEY)
+#pragma comment(lib, "bcrypt.lib");
 /**
  * Generates a truly random key.
  */
@@ -107,6 +108,7 @@ int keyGeneration(byte *key, int keySize);
  * @param version sets AES_128, AES_192 or AES_256.
  * @param mode sets the encryption mode.
  * @return returns decrypted data.
+ * @return returns structures with empty data if the transmitted encrypted data is not a multiple of 16 bytes or there is no IV when using CBC mode.
  */
 CryptData decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte* iv);
 

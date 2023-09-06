@@ -106,6 +106,13 @@ CryptData decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mo
     CryptData cryptData;
     size_t blockCount = 0;
 
+    if (dataSize % AES_BLOCK_SIZE != 0){
+        return (CryptData){0, NULL};
+    }
+    if (mode == AES_CBC && iv == NULL){
+        return (CryptData){0, NULL};
+    }
+
     _print("key:\n");
     _forprint("%02X ", keySizeAES[version], AES_BLOCK_SIZE, key);
 
