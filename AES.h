@@ -39,16 +39,6 @@
 #define _forprint(msg, doI, j, ...)
 #endif
 
-typedef enum {
-    AES_128,
-    AES_192,
-    AES_256
-} VersionAES;
-
-typedef enum {
-    AES_ECB,
-    AES_CBC
-} ModeAES;
 
 #define KEY_AES_128 16
 #define KEY_AES_192 24
@@ -69,6 +59,17 @@ typedef enum {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum {
+    AES_128,
+    AES_192,
+    AES_256
+} VersionAES;
+
+typedef enum {
+    AES_ECB,
+    AES_CBC
+} ModeAES;
 
 typedef unsigned char byte;
 typedef unsigned long word;
