@@ -41,7 +41,7 @@ int main(void) {
 
     printf("result decrypt:\n");
     for (size_t i = 1; i < decryptData.dataSize + 1; ++i) {
-        printf("%02X ", decryptData.data[i - 1]);
+        printf("%02X", decryptData.data[i - 1]);
         if (i % 16 == 0)
             printf("\n");
     }
