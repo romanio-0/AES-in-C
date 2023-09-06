@@ -1,3 +1,0 @@
-"C:\Progs\CLion 2023.2\bin\cmake\win\x64\bin\cmake.exe" -E rm -f CMakeFiles\AES.dir/objects.a
-C:\msys64\ucrt64\bin\ar.exe qc CMakeFiles\AES.dir/objects.a @CMakeFiles\AES.dir\objects1.rsp
-C:\msys64\ucrt64\bin\gcc.exe -g -Wl,--whole-archive CMakeFiles\AES.dir/objects.a -Wl,--no-whole-archive -o AES.exe -Wl,--out-implib,libAES.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\AES.dir\linkLibs.rsp

@@ -12,7 +12,7 @@ Most functions have prototypes in "AES.h" in order to be able to use them separa
 
 To receive progress messages, define _DEBUGE
 
-There is a testMain.c file in which an example of the algorithm's operation is implemented.
+There is a testAES.c file in which an example of the algorithm's operation is implemented.
 ___
 ## Main metods:
 

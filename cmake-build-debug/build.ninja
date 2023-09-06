@@ -49,15 +49,15 @@ cmake_ninja_workdir = D$:/ProjectIT/C/AES/cmake-build-debug/
 
 build cmake_object_order_depends_target_AES: phony || CMakeFiles/AES.dir
 
-build CMakeFiles/AES.dir/main.c.obj: C_COMPILER__AES_unscanned_Debug D$:/ProjectIT/C/AES/main.c || cmake_object_order_depends_target_AES
-  DEP_FILE = CMakeFiles\AES.dir\main.c.obj.d
-  FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+build CMakeFiles/AES.dir/testAES.c.obj: C_COMPILER__AES_unscanned_Debug D$:/ProjectIT/C/AES/testAES.c || cmake_object_order_depends_target_AES
+  DEP_FILE = CMakeFiles\AES.dir\testAES.c.obj.d
+  FLAGS = -g -std=gnu11 -fdiagnostics-color=always   -D _GEN_RAND_KEY
   OBJECT_DIR = CMakeFiles\AES.dir
   OBJECT_FILE_DIR = CMakeFiles\AES.dir
 
 build CMakeFiles/AES.dir/AES.c.obj: C_COMPILER__AES_unscanned_Debug D$:/ProjectIT/C/AES/AES.c || cmake_object_order_depends_target_AES
   DEP_FILE = CMakeFiles\AES.dir\AES.c.obj.d
-  FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu11 -fdiagnostics-color=always   -D _GEN_RAND_KEY
   OBJECT_DIR = CMakeFiles\AES.dir
   OBJECT_FILE_DIR = CMakeFiles\AES.dir
 
@@ -69,9 +69,9 @@ build CMakeFiles/AES.dir/AES.c.obj: C_COMPILER__AES_unscanned_Debug D$:/ProjectI
 #############################################
 # Link the executable AES.exe
 
-build AES.exe: C_EXECUTABLE_LINKER__AES_Debug CMakeFiles/AES.dir/main.c.obj CMakeFiles/AES.dir/AES.c.obj
+build AES.exe: C_EXECUTABLE_LINKER__AES_Debug CMakeFiles/AES.dir/testAES.c.obj CMakeFiles/AES.dir/AES.c.obj | C$:/Windows/System32/bcrypt.dll
   FLAGS = -g
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = C:/Windows/System32/bcrypt.dll  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\AES.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
