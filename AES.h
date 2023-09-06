@@ -61,11 +61,24 @@ extern "C" {
 
 typedef unsigned char byte;
 typedef unsigned long word;
+typedef const char* lpcstr;
 
 typedef struct {
     size_t dataSize;
     byte *data;
 } CryptData;
+
+//static lpcstr errMsg = "NULL";
+//
+///**
+// * Function to get error information.
+// */
+//lpcstr getErrMsg();
+//
+///**
+// * Function to set error information.
+// */
+//void setErrMsg(lpcstr msg);
 
 /**
  * Генерирует истинно случайный ключ.
@@ -73,23 +86,64 @@ typedef struct {
 int keyGeneration(byte *key, int keySize);
 
 /**
- * Функция для шифрования данных алгоритмом AES.
+ * Функция для разшифрования данных алгоритмом AES.
+ *
+ * @param key принимает ключ шифрования.
+ * @param iv принимает initialization vector, если используешься режим
+ * без его поддежки, то используйте NULL.
+ * @param version устанавливает AES_128, AES_192 или AES_256.
+ * @param mode устанавливает режим шифрования.
+ * @return возвращает разшифрованные данные.
+ */
+CryptData decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte* iv);
+
+/**
+ * Функция для разшифрования данных алгоритмом AES в режиме ECB.
  *
  * @param key возвращает ключ шифрования.
+ * @param version устанавливает AES_128, AES_192 или AES_256.
+ * @param data приниемает данные и разшифровывает их.
+ */
+void decryptAES_ECB(byte **data, size_t blockCount, VersionAES version, byte *key);
+
+/**
+ * Функция для разшифрования данных алгоритмом AES в режиме CBC.
+ *
+ * @param key возвращает ключ шифрования.
+ * @param version устанавливает AES_128, AES_192 или AES_256.
+ * @param data приниемает данные и разшифровывает их.
+ */
+void decryptAES_CBC(byte **data, size_t blockCount, VersionAES version, byte *key, byte *iv);
+
+/**
+ * Функция для шифрования данных алгоритмом AES.
+ *
+ * @param key принимает ключ шифрования.
+ * @param iv принимает initialization vector, если используешься режим
+ * без его поддежки, то используйте NULL.
  * @param version устанавливает AES_128, AES_192 или AES_256.
  * @param mode устанавливает режим шифрования.
  * @return возвращает зашифрованные данные.
  */
-CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key);
+CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte *iv);
 
 /**
  * Функция для шифрования данных алгоритмом AES в режиме ECB.
  *
  * @param key возвращает ключ шифрования.
  * @param version устанавливает AES_128, AES_192 или AES_256.
- * @param data приниемает данные и защифровывает их. *
+ * @param data приниемает данные и защифровывает их.
  */
 void encryptAES_ECB(byte **data, size_t blockCount, VersionAES version, byte *key);
+
+/**
+ * Функция для шифрования данных алгоритмом AES в режиме CBC.
+ *
+ * @param key возвращает ключ шифрования.
+ * @param version устанавливает AES_128, AES_192 или AES_256.
+ * @param data приниемает данные и защифровывает их.
+ */
+void encryptAES_CBC(byte **data, size_t blockCount, VersionAES version, byte *key, byte *iv);
 
 /**
  * Функция дополняет данные, если они не кратны нужному
@@ -144,6 +198,11 @@ byte *dataXOR(const byte *data1, const byte *data2, size_t dataSize1, size_t dat
 void subBytes(byte *data, size_t dataSize);
 
 /**
+ * InvSubBytes используя таблицу InvS-box.
+ */
+void invSubBytes(byte *data, size_t dataSize);
+
+/**
  * Adding a Round Key to a Data Block.
  */
 void addRoundKey(byte *data, word *roundKey);
@@ -153,6 +212,12 @@ void addRoundKey(byte *data, word *roundKey);
  * The amount of blending depends on the row number.
  */
 void shiftRows(byte *data);
+
+/**
+ * Rotates the string to the left.
+ * The amount of blending depends on the row number.
+ */
+void invShiftRows(byte *data);
 
 /**
  * Функция берёт все столбцы State и смешивает их данные

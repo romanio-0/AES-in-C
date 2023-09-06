@@ -69,7 +69,7 @@ static const byte invSbox[] = {
         0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
 };
 
-static const word Rcon[] = {0x00, 0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000,
+static const word Rcon[] = {0x00000000, 0x01000000, 0x02000000, 0x04000000, 0x08000000, 0x10000000,
                             0x20000000, 0x40000000, 0x80000000, 0x1b000000, 0x36000000};
 
 #ifdef _WIN32
@@ -103,7 +103,115 @@ int keyGeneration(byte* key, int keySize){
 }
 #endif
 
-CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key) {
+/*lpcstr getErrMsg(){ return errMsg; }
+
+void setErrMsg(lpcstr msg){ errMsg = msg; }*/
+
+
+CryptData decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte *iv){
+    CryptData cryptData;
+    size_t blockCount = 0;
+
+    _print("key:\n");
+    _forprint("%02X ", keySizeAES[version], AES_BLOCK_SIZE, key);
+
+    _print("input data:\n");
+    _forprint("%02X ", dataSize, AES_BLOCK_SIZE, data);
+
+    byte **blockData = splitDataInBlock(data, dataSize, &blockCount);
+
+    switch (mode) {
+        case AES_ECB:
+            decryptAES_ECB(blockData, blockCount, version, key);
+            break;
+        case AES_CBC:
+            decryptAES_CBC(blockData, blockCount, version, key, iv);
+            break;
+    }
+
+    cryptData.data = mergerBlockInData(blockData, blockCount);
+    cryptData.dataSize = delPadding(cryptData.data, dataSize);
+
+
+    _print("output data:\n");
+    _forprint("%02X ", cryptData.dataSize, AES_BLOCK_SIZE, cryptData.data);
+
+    return cryptData;
+}
+
+
+void decryptAES_ECB(byte **data, size_t blockCount, VersionAES version, byte *key){
+    word *roundKey = malloc(sizeof(word) * (NrAES[version] + 1) * NB);
+
+    _print("start decrypt AES-%d-ECB!\n", keySizeAES[version] * 8);
+
+    keyExpansion(key, roundKey, version);
+
+    for (size_t block = 0; block < blockCount; ++block) {
+        addRoundKey(data[block], roundKey + (NrAES[version] * NB));
+
+        for (size_t round = NrAES[version] - 1; round > 0; --round) {
+            _print("round %d----------\n", round);
+            invShiftRows(data[block]);
+            invSubBytes(data[block], AES_BLOCK_SIZE);
+            addRoundKey(data[block], roundKey + (round * NB));
+            invMixColumns(data[block]);
+        }
+
+        _print("round %d----------\n", 0);
+        invShiftRows(data[block]);
+        invSubBytes(data[block], AES_BLOCK_SIZE);
+        addRoundKey(data[block], roundKey);
+    }
+    free(roundKey);
+}
+
+
+void decryptAES_CBC(byte **data, size_t blockCount, VersionAES version, byte *key, byte *iv){
+    word *roundKey = malloc(sizeof(word) * (NrAES[version] + 1) * NB);
+    byte* tmpIv = expandBlock(iv);
+    byte* tmpData = malloc(AES_BLOCK_SIZE);
+
+    _print("start decrypt AES-%d-ECB!\n", keySizeAES[version] * 8);
+
+    keyExpansion(key, roundKey, version);
+
+    for (size_t block = 0; block < blockCount; ++block) {
+        // save this block to use it
+        for (size_t i = 0; i < AES_BLOCK_SIZE; ++i){
+            tmpData[i] = data[block][i];
+        }
+
+        addRoundKey(data[block], roundKey + (NrAES[version] * NB));
+
+        for (size_t round = NrAES[version] - 1; round > 0; --round) {
+            _print("round %d----------\n", round);
+            invShiftRows(data[block]);
+            invSubBytes(data[block], AES_BLOCK_SIZE);
+            addRoundKey(data[block], roundKey + (round * NB));
+            invMixColumns(data[block]);
+        }
+
+        _print("round %d----------\n", 0);
+        invShiftRows(data[block]);
+        invSubBytes(data[block], AES_BLOCK_SIZE);
+        addRoundKey(data[block], roundKey);
+
+        for (size_t i = 0; i < IV_SIZE; ++i){
+            byte tmp = data[block][i] ^ tmpIv[i];
+            tmpIv[i] = tmpData[i];
+            data[block][i] = tmp;
+        }
+        _print("iv:\n");
+        _forprint("%02X ", AES_BLOCK_SIZE, AES_BLOCK_SIZE, data[block]);
+    }
+    free(tmpData);
+    free(tmpIv);
+    free(roundKey);
+}
+
+
+CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte *iv) {
     CryptData cryptData;
     size_t blockCount = 0;
 
@@ -125,7 +233,7 @@ CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mo
             encryptAES_ECB(blockData, blockCount, version, key);
             break;
         case AES_CBC:
-            // ...
+            encryptAES_CBC(blockData, blockCount, version, key, iv);
             break;
     }
 
@@ -166,6 +274,47 @@ void encryptAES_ECB(byte **data, size_t blockCount, VersionAES version, byte *ke
 }
 
 
+void encryptAES_CBC(byte **data, size_t blockCount, VersionAES version, byte *key, byte *iv){
+    word *roundKey = malloc(sizeof(word) * (NrAES[version] + 1) * NB);
+    byte* tmpIv = expandBlock(iv);
+
+    _print("start encrypt AES-%d-ECB!\n", keySizeAES[version] * 8);
+
+    keyExpansion(key, roundKey, version);
+
+    for (size_t block = 0; block < blockCount; ++block) {
+        // using the previous block of initialization vector
+        for (size_t i = 0; i < IV_SIZE; ++i){
+            data[block][i] ^= tmpIv[i];
+        }
+        _print("iv:\n");
+        _forprint("%02X ", AES_BLOCK_SIZE, AES_BLOCK_SIZE, data[block]);
+
+        addRoundKey(data[block], roundKey);
+
+        for (size_t round = 1; round < NrAES[version]; ++round) {
+            _print("round %d----------\n", round);
+            subBytes(data[block], AES_BLOCK_SIZE);
+            shiftRows(data[block]);
+            mixColumns(data[block]);
+            addRoundKey(data[block], roundKey + (round * NB));
+        }
+
+        _print("round %d----------\n", NrAES[version]);
+        subBytes(data[block], AES_BLOCK_SIZE);
+        shiftRows(data[block]);
+        addRoundKey(data[block], roundKey + (NrAES[version] * NB));
+
+        // copies the data to modify the next block by this block
+        for (size_t i = 0; i < IV_SIZE; ++i){
+            tmpIv[i] = data[block][i];
+        }
+    }
+    free(tmpIv);
+    free(roundKey);
+}
+
+
 size_t addPadding(byte *blockData, size_t blockDataSize) {
     if (blockDataSize % AES_BLOCK_SIZE == 0) {
         // if padding is not needed
@@ -182,12 +331,18 @@ size_t addPadding(byte *blockData, size_t blockDataSize) {
 
 size_t delPadding(byte *data, size_t dataSize) {
     byte valuePadding = data[dataSize - 1];
+
+    if (valuePadding > AES_BLOCK_SIZE + 1){
+        // invalid padding
+        return dataSize;
+    }
     for (size_t i = dataSize - valuePadding; i < dataSize; ++i) {
         if (data[i] != valuePadding) {
             // invalid padding
             return dataSize;
         }
     }
+
     for (size_t i = dataSize - valuePadding; i < dataSize; ++i) {
         data[i] = 0;
     }
@@ -270,12 +425,22 @@ byte *dataXOR(const byte *data1, const byte *data2, size_t dataSize1, size_t dat
 
 
 void subBytes(byte *data, size_t dataSize) {
-    _print("sub bytes:\n");
-    _forprint("%02X ", dataSize, AES_BLOCK_SIZE, data);
-
     for (int i = 0; i < dataSize; ++i) {
         data[i] = Sbox[data[i]];
     }
+
+    _print("sub bytes:\n");
+    _forprint("%02X ", dataSize, AES_BLOCK_SIZE, data);
+}
+
+
+void invSubBytes(byte *data, size_t dataSize){
+    for (int i = 0; i < dataSize; ++i) {
+        data[i] = invSbox[data[i]];
+    }
+
+    _print("inv sub bytes:\n");
+    _forprint("%02X ", dataSize, AES_BLOCK_SIZE, data);
 }
 
 
@@ -310,6 +475,23 @@ void shiftRows(byte *data) {
         byte tmp;
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < NB - 1; ++j) {
+                tmp = data[rows * NB + j];
+                data[rows * NB + j] = data[rows * NB + j + 1];
+                data[rows * NB + j + 1] = tmp;
+            }
+        }
+    }
+
+    _print("shift rows:\n");
+    _forprint("%02X ", AES_BLOCK_SIZE, AES_BLOCK_SIZE, data);
+}
+
+
+void invShiftRows(byte *data){
+    for (int rows = 0; rows < NB; ++rows) {
+        byte tmp;
+        for (int i = 0; i < rows; ++i) {
+            for (int j = NB - 2; j >= 0; --j) {
                 tmp = data[rows * NB + j];
                 data[rows * NB + j] = data[rows * NB + j + 1];
                 data[rows * NB + j + 1] = tmp;
