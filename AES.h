@@ -167,7 +167,7 @@ void encryptAES_CBC(byte **data, size_t blockCount, VersionAES version, byte *ke
  *
  * Returns the new data size with PKCS7 Padding.
  */
-size_t addPadding(byte *blockData, size_t blockDataSize);
+byte* addPadding(byte *blockData, size_t* blockDataSize);
 
 /**
  * The function removes PKCS7 Padding.
