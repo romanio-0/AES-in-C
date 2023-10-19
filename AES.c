@@ -222,12 +222,12 @@ CryptData encryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mo
     _print("input data:\n");
     _forprint("%02X ", dataSize, AES_BLOCK_SIZE, data);
 
-    dataSize = addPadding(data, dataSize);
+    byte* dataPadding = addPadding(data, &dataSize);
 
     _print("data after adding padding:\n");
-    _forprint("%02X ", dataSize, AES_BLOCK_SIZE, data);
+    _forprint("%02X ", dataSize, AES_BLOCK_SIZE, dataPadding);
 
-    byte **blockData = splitDataInBlock(data, dataSize, &blockCount);
+    byte **blockData = splitDataInBlock(dataPadding, dataSize, &blockCount);
 
     switch (mode) {
         case AES_ECB:
@@ -316,17 +316,24 @@ void encryptAES_CBC(byte **data, size_t blockCount, VersionAES version, byte *ke
 }
 
 
-size_t addPadding(byte *blockData, size_t blockDataSize) {
-    if (blockDataSize % AES_BLOCK_SIZE == 0) {
+byte* addPadding(byte *blockData, size_t* blockDataSize) {
+    if (*blockDataSize % AES_BLOCK_SIZE == 0) {
         // if padding is not needed
-        return blockDataSize;
-    }
-    byte valuePadding = AES_BLOCK_SIZE - (blockDataSize % AES_BLOCK_SIZE);
-    for (size_t i = 0; i < valuePadding; ++i) {
-        blockData[blockDataSize + i] = valuePadding;
+        return blockData;
     }
 
-    return blockDataSize + valuePadding;
+    byte valuePadding = AES_BLOCK_SIZE - (*blockDataSize % AES_BLOCK_SIZE);
+    byte* newDataPadd = malloc(*blockDataSize + valuePadding);
+
+    for (size_t i = 0; i < *blockDataSize; ++i){
+        newDataPadd[i] = blockData[i];
+    }
+
+    for (size_t i = 0; i < valuePadding; ++i) {
+        newDataPadd[*blockDataSize + i] = valuePadding;
+    }
+    *blockDataSize += valuePadding;
+    return newDataPadd;
 }
 
 
