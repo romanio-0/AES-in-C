@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #endif // _WIN32
 
 //#define _DEBUG
@@ -76,7 +76,7 @@ typedef unsigned long word;
 typedef const char* lpcstr;
 
 typedef struct {
-    size_t dataSize;
+    long long dataSize;
     byte *data;
 } CryptData;
 
@@ -111,7 +111,7 @@ int keyGeneration(byte *key, int keySize);
  * @return returns decrypted data.
  * @return returns structures with empty data if the transmitted encrypted data is not a multiple of 16 bytes or there is no IV when using CBC mode.
  */
-CryptData decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte* iv);
+CryptData* decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte* iv);
 
 /**
  * A function to decrypt data with the AES algorithm in ECB mode.
