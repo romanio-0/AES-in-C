@@ -102,15 +102,15 @@ int keyGeneration(byte *key, int keySize) {
 void setErrMsg(lpcstr msg){ errMsg = msg; }*/
 
 
-CryptData decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte *iv){
-    CryptData cryptData;
+CryptData* decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mode, byte *key, byte *iv){
+    CryptData* cryptData;
     size_t blockCount = 0;
 
     if (dataSize % AES_BLOCK_SIZE != 0){
-        return (CryptData){0, NULL};
+        return NULL;
     }
     if (mode == AES_CBC && iv == NULL){
-        return (CryptData){0, NULL};
+        return NULL;
     }
 
     _print("key:\n");
@@ -130,8 +130,9 @@ CryptData decryptAES(byte *data, size_t dataSize, VersionAES version, ModeAES mo
             break;
     }
 
-    cryptData.data = mergerBlockInData(blockData, blockCount);
-    cryptData.dataSize = delPadding(cryptData.data, dataSize);
+    cryptData = malloc(sizeof(CryptData));
+    cryptData->data = mergerBlockInData(blockData, blockCount);
+    cryptData->dataSize = delPadding(cryptData->data, dataSize);
 
 
     _print("output data:\n");
